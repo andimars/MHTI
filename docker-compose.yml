@@ -1,0 +1,42 @@
+# MHTI Docker Compose Configuration
+# =====================================
+# Architecture: Caddy (reverse proxy) + FastAPI (API)
+#   - Port 8000: Main entry (Caddy - frontend + API unified)
+#
+# Usage:
+#   docker-compose up -d        # Start
+#   docker-compose logs -f      # View logs
+#   docker-compose down         # Stop
+
+services:
+  mhti:
+    image: xiyan520/mhti:latest
+    container_name: mhti
+    restart: unless-stopped
+
+    ports:
+      - "8000:8000"   # Main entry (Caddy - frontend + API)
+
+    volumes:
+      - ./data:/app/data
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro  # 挂载本地 Caddyfile
+      # Media library mount points
+      # - /path/to/your/media:/media:ro
+      # - /path/to/your/output:/output
+
+    environment:
+      - DATA_DIR=/app/data
+      - TZ=Asia/Shanghai
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

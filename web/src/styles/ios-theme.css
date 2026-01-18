@@ -1,0 +1,407 @@
+/* iOS Theme - MHTI 全局样式 */
+
+/* ========== CSS 变量 ========== */
+:root {
+  /* iOS 主色调 */
+  --ios-blue: #007AFF;
+  --ios-blue-hover: #0066D6;
+  --ios-blue-light: rgba(0, 122, 255, 0.1);
+
+  /* iOS 系统色 */
+  --ios-green: #34C759;
+  --ios-red: #FF3B30;
+  --ios-orange: #FF9500;
+  --ios-yellow: #FFCC00;
+  --ios-purple: #AF52DE;
+  --ios-pink: #FF2D55;
+  --ios-teal: #5AC8FA;
+
+  /* 背景色 - 亮色模式 */
+  --ios-bg-primary: #F2F2F7;
+  --ios-bg-secondary: #FFFFFF;
+  --ios-bg-tertiary: #E5E5EA;
+  --ios-bg-grouped: #F2F2F7;
+
+  /* 毛玻璃效果 */
+  --ios-glass-bg: rgba(255, 255, 255, 0.72);
+  --ios-glass-bg-thick: rgba(255, 255, 255, 0.85);
+  --ios-glass-border: rgba(0, 0, 0, 0.06);
+  --ios-glass-blur: 20px;
+
+  /* 文字颜色 */
+  --ios-text-primary: #1C1C1E;
+  --ios-text-secondary: #8E8E93;
+  --ios-text-tertiary: #C7C7CC;
+  --ios-text-quaternary: #D1D1D6;
+
+  /* 分隔线 */
+  --ios-separator: rgba(60, 60, 67, 0.12);
+  --ios-separator-opaque: #C6C6C8;
+
+  /* 阴影 */
+  --ios-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --ios-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --ios-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
+  --ios-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16), 0 8px 16px rgba(0, 0, 0, 0.08);
+
+  /* 圆角 */
+  --ios-radius-sm: 8px;
+  --ios-radius-md: 12px;
+  --ios-radius-lg: 16px;
+  --ios-radius-xl: 20px;
+  --ios-radius-2xl: 24px;
+
+  /* 间距 */
+  --ios-spacing-xs: 4px;
+  --ios-spacing-sm: 8px;
+  --ios-spacing-md: 12px;
+  --ios-spacing-lg: 16px;
+  --ios-spacing-xl: 20px;
+  --ios-spacing-2xl: 24px;
+
+  /* 动画 */
+  --ios-transition-fast: 0.15s ease;
+  --ios-transition-normal: 0.25s ease;
+  --ios-transition-slow: 0.35s ease;
+  --ios-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ========== 暗色模式变量 ========== */
+.dark,
+[data-theme="dark"] {
+  --ios-bg-primary: #000000;
+  --ios-bg-secondary: #1C1C1E;
+  --ios-bg-tertiary: #2C2C2E;
+  --ios-bg-grouped: #000000;
+
+  --ios-glass-bg: rgba(28, 28, 30, 0.72);
+  --ios-glass-bg-thick: rgba(28, 28, 30, 0.85);
+  --ios-glass-border: rgba(255, 255, 255, 0.08);
+
+  --ios-text-primary: #FFFFFF;
+  --ios-text-secondary: #8E8E93;
+  --ios-text-tertiary: #48484A;
+  --ios-text-quaternary: #3A3A3C;
+
+  --ios-separator: rgba(84, 84, 88, 0.65);
+  --ios-separator-opaque: #38383A;
+
+  --ios-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --ios-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+  --ios-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.3);
+  --ios-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* ========== 毛玻璃效果 ========== */
+.ios-glass {
+  background: var(--ios-glass-bg);
+  backdrop-filter: saturate(180%) blur(var(--ios-glass-blur));
+  -webkit-backdrop-filter: saturate(180%) blur(var(--ios-glass-blur));
+  border: 1px solid var(--ios-glass-border);
+}
+
+.ios-glass-thick {
+  background: var(--ios-glass-bg-thick);
+  backdrop-filter: saturate(180%) blur(25px);
+  -webkit-backdrop-filter: saturate(180%) blur(25px);
+  border: 1px solid var(--ios-glass-border);
+}
+
+/* ========== 卡片组件 ========== */
+.ios-card {
+  background: var(--ios-bg-secondary);
+  border-radius: var(--ios-radius-lg);
+  box-shadow: var(--ios-shadow-sm);
+  padding: var(--ios-spacing-xl);
+  transition: transform var(--ios-transition-normal), box-shadow var(--ios-transition-normal);
+}
+
+.ios-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ios-shadow-md);
+}
+
+.ios-card-flat {
+  background: var(--ios-bg-secondary);
+  border-radius: var(--ios-radius-lg);
+  padding: var(--ios-spacing-xl);
+}
+
+/* ========== 按钮样式 ========== */
+.ios-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ios-spacing-sm);
+  padding: var(--ios-spacing-md) var(--ios-spacing-xl);
+  border-radius: var(--ios-radius-md);
+  font-weight: 600;
+  font-size: 16px;
+  transition: all var(--ios-transition-fast);
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.ios-btn-primary {
+  background: var(--ios-blue);
+  color: white;
+}
+
+.ios-btn-primary:hover {
+  background: var(--ios-blue-hover);
+  transform: scale(1.02);
+}
+
+.ios-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.ios-btn-secondary {
+  background: var(--ios-blue-light);
+  color: var(--ios-blue);
+}
+
+.ios-btn-secondary:hover {
+  background: rgba(0, 122, 255, 0.15);
+}
+
+.ios-btn-ghost {
+  background: transparent;
+  color: var(--ios-blue);
+}
+
+.ios-btn-ghost:hover {
+  background: var(--ios-blue-light);
+}
+
+/* ========== 输入框样式 ========== */
+.ios-input {
+  width: 100%;
+  padding: var(--ios-spacing-md) var(--ios-spacing-lg);
+  background: var(--ios-bg-tertiary);
+  border: none;
+  border-radius: var(--ios-radius-md);
+  font-size: 16px;
+  color: var(--ios-text-primary);
+  transition: all var(--ios-transition-fast);
+}
+
+.ios-input:focus {
+  background: var(--ios-bg-secondary);
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.2);
+  outline: none;
+}
+
+.ios-input::placeholder {
+  color: var(--ios-text-tertiary);
+}
+
+/* ========== 列表样式 ========== */
+.ios-list {
+  background: var(--ios-bg-secondary);
+  border-radius: var(--ios-radius-lg);
+  overflow: hidden;
+}
+
+.ios-list-item {
+  display: flex;
+  align-items: center;
+  padding: var(--ios-spacing-md) var(--ios-spacing-lg);
+  border-bottom: 1px solid var(--ios-separator);
+  transition: background var(--ios-transition-fast);
+}
+
+.ios-list-item:last-child {
+  border-bottom: none;
+}
+
+.ios-list-item:hover {
+  background: var(--ios-bg-tertiary);
+}
+
+.ios-list-item:active {
+  background: var(--ios-separator);
+}
+
+/* ========== 分组列表 ========== */
+.ios-grouped-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ios-spacing-xl);
+}
+
+.ios-group {
+  background: var(--ios-bg-secondary);
+  border-radius: var(--ios-radius-lg);
+  overflow: hidden;
+}
+
+.ios-group-header {
+  padding: var(--ios-spacing-sm) var(--ios-spacing-lg);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ios-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ios-group-footer {
+  padding: var(--ios-spacing-sm) var(--ios-spacing-lg);
+  font-size: 13px;
+  color: var(--ios-text-secondary);
+}
+
+/* ========== 动画 ========== */
+@keyframes ios-spring-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ios-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ios-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ios-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ios-animate-spring {
+  animation: ios-spring-in 0.4s var(--ios-spring);
+}
+
+.ios-animate-fade {
+  animation: ios-fade-in 0.3s ease;
+}
+
+.ios-animate-slide-up {
+  animation: ios-slide-up 0.35s ease;
+}
+
+/* ========== 页面切换动画 ========== */
+.ios-page-enter-active {
+  animation: ios-slide-up 0.35s ease;
+}
+
+.ios-page-leave-active {
+  animation: ios-fade-out 0.2s ease;
+}
+
+@keyframes ios-fade-out {
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+/* ========== 滚动条样式 ========== */
+.ios-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ios-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ios-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--ios-text-quaternary);
+  border-radius: 4px;
+}
+
+.ios-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--ios-text-tertiary);
+}
+
+/* ========== 工具类 ========== */
+.ios-text-primary { color: var(--ios-text-primary); }
+.ios-text-secondary { color: var(--ios-text-secondary); }
+.ios-text-tertiary { color: var(--ios-text-tertiary); }
+
+.ios-bg-primary { background: var(--ios-bg-primary); }
+.ios-bg-secondary { background: var(--ios-bg-secondary); }
+.ios-bg-tertiary { background: var(--ios-bg-tertiary); }
+
+.ios-rounded-sm { border-radius: var(--ios-radius-sm); }
+.ios-rounded-md { border-radius: var(--ios-radius-md); }
+.ios-rounded-lg { border-radius: var(--ios-radius-lg); }
+.ios-rounded-xl { border-radius: var(--ios-radius-xl); }
+
+.ios-shadow-sm { box-shadow: var(--ios-shadow-sm); }
+.ios-shadow-md { box-shadow: var(--ios-shadow-md); }
+.ios-shadow-lg { box-shadow: var(--ios-shadow-lg); }
+.ios-shadow-xl { box-shadow: var(--ios-shadow-xl); }
+
+/* ========== 状态指示器 ========== */
+.ios-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+.ios-badge-primary { background: var(--ios-blue); }
+.ios-badge-success { background: var(--ios-green); }
+.ios-badge-warning { background: var(--ios-orange); }
+.ios-badge-danger { background: var(--ios-red); }
+
+/* ========== 状态点 ========== */
+.ios-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.ios-dot-success { background: var(--ios-green); }
+.ios-dot-warning { background: var(--ios-orange); }
+.ios-dot-danger { background: var(--ios-red); }
+.ios-dot-info { background: var(--ios-blue); }
+
+/* ========== 分隔线 ========== */
+.ios-divider {
+  height: 1px;
+  background: var(--ios-separator);
+  margin: var(--ios-spacing-lg) 0;
+}
+
+.ios-divider-inset {
+  margin-left: var(--ios-spacing-lg);
+}

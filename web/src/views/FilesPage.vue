@@ -1,0 +1,559 @@
+<script setup lang="ts">
+import { ref, computed, h, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import {
+  NCard,
+  NButton,
+  NDataTable,
+  NInput,
+  NIcon,
+  NPagination,
+  NBreadcrumb,
+  NBreadcrumbItem,
+  useMessage,
+  type DataTableColumns,
+  type DataTableRowKey,
+} from 'naive-ui'
+import {
+  FolderOutline,
+  DocumentOutline,
+  SearchOutline,
+  AddOutline,
+  ArrowBackOutline,
+  SwapHorizontalOutline,
+} from '@vicons/ionicons5'
+import { filesApi } from '@/api/files'
+import type { DirectoryEntry } from '@/api/types'
+import EmptyState from '@/components/common/EmptyState.vue'
+import ManualJobCreateModal from '@/components/scan/ManualJobCreateModal.vue'
+
+const route = useRoute()
+const router = useRouter()
+const message = useMessage()
+
+const loading = ref(false)
+const entries = ref<DirectoryEntry[]>([])
+const currentPath = ref('')
+const parentPath = ref<string | null>(null)
+const total = ref(0)
+const page = ref(1)
+const pageSize = ref(20)
+const search = ref('')
+const checkedRowKeys = ref<DataTableRowKey[]>([])
+
+// 创建任务弹窗
+const showCreateModal = ref(false)
+const createTaskPath = ref('')
+
+// 从 URL 获取初始路径
+const initPath = computed(() => (route.query.root as string) || '')
+const initPage = computed(() => parseInt(route.query.page as string) || 1)
+
+// 路径面包屑
+const pathSegments = computed(() => {
+  if (!currentPath.value) return []
+  const segments: { name: string; path: string }[] = []
+  const parts = currentPath.value.split(/[/\\]/).filter(Boolean)
+
+  // Windows 驱动器处理
+  if (currentPath.value.match(/^[A-Z]:\\/i)) {
+    let accPath = ''
+    parts.forEach((part, index) => {
+      if (index === 0) {
+        accPath = part + '\\'
+        segments.push({ name: part, path: accPath })
+      } else {
+        accPath = accPath + part + '\\'
+        segments.push({ name: part, path: accPath.slice(0, -1) })
+      }
+    })
+  } else {
+    // Unix 路径
+    let accPath = ''
+    parts.forEach((part) => {
+      accPath = accPath + '/' + part
+      segments.push({ name: part, path: accPath })
+    })
+  }
+  return segments
+})
+
+// 格式化文件大小
+const formatSize = (size: number | null) => {
+  if (size === null) return '-'
+  if (size < 1024) return `${size} B`
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`
+  if (size < 1024 * 1024 * 1024) return `${(size / 1024 / 1024).toFixed(1)} MB`
+  return `${(size / 1024 / 1024 / 1024).toFixed(2)} GB`
+}
+
+// 格式化时间
+const formatTime = (mtime: string | null) => {
+  if (!mtime) return '-'
+  const date = new Date(mtime)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
+}
+
+// 过滤后的条目
+const filteredEntries = computed(() => {
+  if (!search.value) return entries.value
+  const keyword = search.value.toLowerCase()
+  return entries.value.filter((e) => e.name.toLowerCase().includes(keyword))
+})
+
+// 表格列
+const columns: DataTableColumns<DirectoryEntry> = [
+  { type: 'selection' },
+  {
+    title: '名称',
+    key: 'name',
+    ellipsis: { tooltip: true },
+    render: (row) =>
+      h(
+        'div',
+        { class: 'file-name-cell', onClick: () => row.is_dir && enterDirectory(row) },
+        [
+          h(NIcon, {
+            component: row.is_dir ? FolderOutline : DocumentOutline,
+            size: 20,
+            class: row.is_dir ? 'folder-icon' : 'file-icon',
+          }),
+          h('span', { class: 'file-name' }, row.name),
+        ]
+      ),
+  },
+  {
+    title: '修改时间',
+    key: 'mtime',
+    width: 180,
+    render: (row) => formatTime(row.mtime),
+  },
+  {
+    title: '文件大小',
+    key: 'size',
+    width: 120,
+    align: 'right',
+    render: (row) => formatSize(row.size),
+  },
+  {
+    title: '操作',
+    key: 'actions',
+    width: 80,
+    render: (row) =>
+      row.is_dir
+        ? h(
+            NButton,
+            {
+              size: 'small',
+              quaternary: true,
+              onClick: () => createTaskForFolder(row),
+            },
+            { icon: () => h(NIcon, { component: AddOutline }) }
+          )
+        : null,
+  },
+]
+
+// 加载目录
+const loadDirectory = async (path: string = '', p: number = 1) => {
+  loading.value = true
+  try {
+    const response = await filesApi.browse(path, p, pageSize.value)
+    entries.value = response.entries
+    currentPath.value = response.current_path
+    parentPath.value = response.parent_path
+    total.value = response.total
+    page.value = response.page
+
+    // 更新 URL
+    router.replace({
+      query: {
+        ...(response.current_path ? { root: response.current_path } : {}),
+        ...(p > 1 ? { page: p.toString() } : {}),
+      },
+    })
+  } catch (error) {
+    message.error('加载目录失败')
+    console.error(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 进入目录
+const enterDirectory = (entry: DirectoryEntry) => {
+  if (entry.is_dir) {
+    page.value = 1
+    search.value = ''
+    checkedRowKeys.value = []
+    loadDirectory(entry.path, 1)
+  }
+}
+
+// 返回上级
+const goUp = () => {
+  if (parentPath.value !== null) {
+    page.value = 1
+    search.value = ''
+    checkedRowKeys.value = []
+    loadDirectory(parentPath.value, 1)
+  }
+}
+
+// 跳转到路径
+const goToPath = (path: string) => {
+  page.value = 1
+  search.value = ''
+  checkedRowKeys.value = []
+  loadDirectory(path, 1)
+}
+
+// 返回根目录
+const goToRoot = () => {
+  goToPath('')
+}
+
+// 分页变化
+const handlePageChange = (p: number) => {
+  page.value = p
+  checkedRowKeys.value = []
+  loadDirectory(currentPath.value, p)
+}
+
+// 选中行变化
+const handleCheckedRowKeysChange = (keys: DataTableRowKey[]) => {
+  checkedRowKeys.value = keys
+}
+
+// 为文件夹创建任务
+const createTaskForFolder = (entry: DirectoryEntry) => {
+  createTaskPath.value = entry.path
+  showCreateModal.value = true
+}
+
+// 批量创建任务（使用当前路径）
+const createTaskForSelected = () => {
+  createTaskPath.value = currentPath.value
+  showCreateModal.value = true
+}
+
+// 创建任务成功
+const handleCreateSuccess = () => {
+  message.success('任务已创建')
+}
+
+// 行属性
+const rowProps = (row: DirectoryEntry) => ({
+  style: row.is_dir ? 'cursor: pointer;' : '',
+  onDblclick: () => row.is_dir && enterDirectory(row),
+})
+
+// 监听路由变化
+watch(
+  () => route.query,
+  () => {
+    const path = (route.query.root as string) || ''
+    const p = parseInt(route.query.page as string) || 1
+    if (path !== currentPath.value || p !== page.value) {
+      loadDirectory(path, p)
+    }
+  },
+  { immediate: false }
+)
+
+// 初始加载
+loadDirectory(initPath.value, initPage.value)
+</script>
+
+<template>
+  <div class="files-page">
+    <NCard class="main-card glass-card">
+      <!-- 标题栏 -->
+      <div class="page-header">
+        <div class="header-left">
+          <h1 class="page-title">文件管理</h1>
+          <NIcon :component="SwapHorizontalOutline" size="18" class="mode-icon" />
+          <router-link to="/filemanager/scan" class="mode-link">扫描模式</router-link>
+        </div>
+      </div>
+
+      <!-- 面包屑导航 -->
+      <div class="breadcrumb-bar">
+        <NButton
+          quaternary
+          circle
+          size="small"
+          :disabled="parentPath === null && !currentPath"
+          @click="goUp"
+        >
+          <template #icon>
+            <NIcon :component="ArrowBackOutline" />
+          </template>
+        </NButton>
+        <NBreadcrumb separator="/">
+          <NBreadcrumbItem @click="goToRoot">
+            <span class="breadcrumb-root">根目录</span>
+          </NBreadcrumbItem>
+          <NBreadcrumbItem
+            v-for="segment in pathSegments"
+            :key="segment.path"
+            @click="goToPath(segment.path)"
+          >
+            {{ segment.name }}
+          </NBreadcrumbItem>
+        </NBreadcrumb>
+      </div>
+
+      <!-- 工具栏 -->
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <NInput
+            v-model:value="search"
+            placeholder="关键字过滤"
+            clearable
+            class="search-input"
+          >
+            <template #prefix>
+              <NIcon :component="SearchOutline" />
+            </template>
+          </NInput>
+        </div>
+        <div class="toolbar-right">
+          <span class="selected-count">已选中 {{ checkedRowKeys.length }} 个条目</span>
+          <NButton
+            type="primary"
+            :disabled="!currentPath"
+            @click="createTaskForSelected"
+          >
+            <template #icon>
+              <NIcon :component="AddOutline" />
+            </template>
+            创建任务
+          </NButton>
+        </div>
+      </div>
+
+      <!-- 表格 -->
+      <NDataTable
+        v-if="filteredEntries.length > 0 || loading"
+        :columns="columns"
+        :data="filteredEntries"
+        :loading="loading"
+        :row-key="(row: DirectoryEntry) => row.path"
+        :checked-row-keys="checkedRowKeys"
+        :row-props="rowProps"
+        @update:checked-row-keys="handleCheckedRowKeysChange"
+      />
+
+      <!-- 空状态 -->
+      <EmptyState
+        v-else-if="!loading"
+        title="目录为空"
+        description="当前目录没有文件或文件夹"
+      />
+
+      <!-- 分页 -->
+      <div v-if="total > pageSize" class="pagination">
+        <NPagination
+          v-model:page="page"
+          :page-size="pageSize"
+          :item-count="total"
+          @update:page="handlePageChange"
+        />
+      </div>
+    </NCard>
+
+    <!-- 创建任务弹窗 -->
+    <ManualJobCreateModal
+      v-model:show="showCreateModal"
+      :initial-scan-path="createTaskPath"
+      @success="handleCreateSuccess"
+    />
+  </div>
+</template>
+
+<style scoped>
+.files-page {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* 毛玻璃卡片 */
+.glass-card {
+  border: none;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+:global(.dark) .glass-card {
+  background: rgba(30, 41, 59, 0.7);
+}
+
+/* 页面标题 */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.mode-icon {
+  color: var(--n-text-color-3);
+}
+
+.mode-link {
+  color: var(--n-text-color-3);
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.mode-link:hover {
+  color: var(--n-primary-color);
+}
+
+/* 面包屑 */
+.breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: var(--n-color-modal);
+  border-radius: 8px;
+}
+
+.breadcrumb-root {
+  cursor: pointer;
+}
+
+:deep(.n-breadcrumb-item) {
+  cursor: pointer;
+}
+
+:deep(.n-breadcrumb-item:hover) {
+  color: var(--n-primary-color);
+}
+
+/* 工具栏 */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-input {
+  width: 260px;
+}
+
+.selected-count {
+  color: var(--n-text-color-3);
+  font-size: 0.875rem;
+}
+
+/* 文件名单元格 */
+:deep(.file-name-cell) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+:deep(.folder-icon) {
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+:deep(.file-icon) {
+  color: var(--n-text-color-3);
+  flex-shrink: 0;
+}
+
+:deep(.file-name) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 分页 */
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+/* 表格样式 */
+.files-page :deep(.n-data-table) {
+  border-radius: 8px;
+}
+
+.files-page :deep(.n-data-table-th) {
+  font-weight: 600;
+}
+
+.files-page :deep(.n-data-table-tr:hover) {
+  background: var(--n-color-hover);
+}
+
+/* 按钮样式 */
+.files-page :deep(.n-button--primary-type) {
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.files-page :deep(.n-button--primary-type:hover) {
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+  transform: translateY(-1px);
+}
+
+/* 响应式 */
+@media (max-width: 640px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-left,
+  .toolbar-right {
+    width: 100%;
+  }
+
+  .search-input {
+    flex: 1;
+  }
+
+  .toolbar-right {
+    justify-content: space-between;
+  }
+
+  .breadcrumb-bar {
+    overflow-x: auto;
+  }
+}
+</style>

@@ -1,0 +1,59 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.eggs/
+
+# Node
+web/node_modules/
+web/.vite/
+web/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Build artifacts
+*.log
+*.tmp
+
+# Secrets (should use env vars)
+.secret_key
+.env
+.env.*
+
+# Test files
+server/tests/
+web/**/*.spec.ts
+web/**/*.test.ts
+
+# BMad method
+.bmad-core/
+.ai/
+
+# Misc
+.DS_Store
+Thumbs.db

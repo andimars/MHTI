@@ -1,0 +1,147 @@
+# ===================================
+# MHTI 项目 Git 忽略规则
+# ===================================
+
+# -----------------------------------
+# Python
+# -----------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 虚拟环境
+venv/
+.venv/
+ENV/
+env/
+
+# 测试和覆盖率
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ruff
+.ruff_cache/
+
+# -----------------------------------
+# Node.js / 前端
+# -----------------------------------
+node_modules/
+.npm
+.pnpm-store/
+
+# 构建产物
+web/dist/
+.vite/
+
+# 日志
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# -----------------------------------
+# IDE / 编辑器
+# -----------------------------------
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# -----------------------------------
+# 操作系统
+# -----------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# -----------------------------------
+# 数据目录（保留目录结构，忽略内容）
+# -----------------------------------
+# 数据库文件
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# 密钥文件
+data/.secret_key
+
+# 日志文件
+data/logs/
+
+# 但保留 data 目录
+!data/.gitkeep
+
+# -----------------------------------
+# 项目特定
+# -----------------------------------
+# 根目录密钥（如果存在）
+.secret_key
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# 日志文件
+*.log
+logs/
+
+# -----------------------------------
+# AI/开发工具工作目录
+# -----------------------------------
+.serena/
+.spec-workflow/
+
+# -----------------------------------
+# Docker（可选忽略本地覆盖）
+# -----------------------------------
+docker-compose.override.yml
+
+# -----------------------------------
+# 临时文件
+# -----------------------------------
+*.tmp
+*.temp
+*.bak
+*.backup
